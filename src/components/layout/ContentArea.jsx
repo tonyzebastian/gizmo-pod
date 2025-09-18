@@ -1,10 +1,11 @@
 import React from 'react'
 import { useAppNavigation } from '../../hooks/useAppNavigation'
 import { OverviewSection } from '../overview/OverviewSection'
+import { DevicesSection } from '../devices/DevicesSection'
 
 const sectionComponents = {
   overview: () => <OverviewSection />,
-  devices: () => <div>Devices Section</div>,
+  devices: () => <DevicesSection />,
   flows: () => <div>Flows Section</div>,
   config: () => <div>Config Section</div>,
   notifications: () => <div>Notifications Section</div>,
@@ -19,7 +20,7 @@ export const ContentArea = () => {
   return (
     <div
       data-testid="content-area"
-      className="flex-1 overflow-auto bg-gray-50 p-6"
+      className="flex-1 overflow-hidden bg-gray-50"
     >
       <SectionComponent />
     </div>
