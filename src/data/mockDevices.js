@@ -406,7 +406,11 @@ export const DEVICES = [
       value: 'Playing Music',
       rawValue: 1
     },
-    battery: null,
+    battery: {
+      level: 68,
+      isCharging: false,
+      lastCharged: '2025-09-18T08:30:00Z'
+    },
     powerData: {
       current: 8,
       daily: 192,

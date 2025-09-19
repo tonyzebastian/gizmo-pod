@@ -104,22 +104,109 @@ export const SYSTEM_METRICS = {
   }
 }
 
-// Helper function to get metric display info
-export const getMetricDisplayInfo = (metricKey) => {
+// Helper function to get metric display info with dynamic calculations
+export const getMetricDisplayInfo = (metricKey, timePeriod = 'today', comparison = 'yesterday') => {
   const metric = SYSTEM_METRICS[metricKey]
   if (!metric) return null
 
+  // Calculate dynamic values based on filters
+  const dynamicValues = calculateDynamicMetrics(metricKey, timePeriod, comparison)
+
   return {
     title: metric.label,
-    value: `${metric.current.toLocaleString()} ${metric.unit}`,
-    change: metric.change,
-    trend: metric.trend,
+    value: `${dynamicValues.current.toLocaleString()} ${metric.unit}`,
+    change: dynamicValues.change,
+    trend: dynamicValues.trend,
     status: metric.status || 'normal'
   }
 }
 
+// Helper function to calculate dynamic metrics based on time period and comparison
+const calculateDynamicMetrics = (metricKey, timePeriod, comparison) => {
+  const baseMetric = SYSTEM_METRICS[metricKey]
+  const baseCurrent = baseMetric.current
+
+  // Calculate current value based on time period with realistic scaling
+  let current = baseCurrent
+
+  if (metricKey === 'powerUsage') {
+    // Power usage scales dramatically with time period
+    switch (timePeriod) {
+      case 'now':
+        current = 1.2 + Math.random() * 0.8 // 1-2 kW current usage
+        break
+      case 'today':
+        current = 25 + Math.random() * 15 // 25-40 kWh today
+        break
+      case 'last7days':
+        current = 250 + Math.random() * 100 // 250-350 kWh over 7 days
+        break
+      case 'last30days':
+        current = 950 + Math.random() * 200 // 950-1150 kWh over 30 days
+        break
+    }
+  } else {
+    // Temperature and air quality remain similar regardless of time period (averages)
+    switch (timePeriod) {
+      case 'now':
+        current = baseCurrent + (Math.random() - 0.5) * baseCurrent * 0.05
+        break
+      case 'today':
+        current = baseCurrent + (Math.random() - 0.5) * baseCurrent * 0.03
+        break
+      case 'last7days':
+        current = baseCurrent * 0.98 + (Math.random() - 0.5) * baseCurrent * 0.08
+        break
+      case 'last30days':
+        current = baseCurrent * 0.96 + (Math.random() - 0.5) * baseCurrent * 0.12
+        break
+    }
+  }
+
+  // Calculate comparison value and delta - use current value as baseline for comparison
+  let comparisonValue = current // Use the current period value as baseline
+
+  // Apply comparison percentage differences
+  switch (comparison) {
+    case 'yesterday':
+      comparisonValue = current * (0.95 + Math.random() * 0.1) // 95-105% of current
+      break
+    case 'last7days':
+      comparisonValue = current * (0.90 + Math.random() * 0.2) // 90-110% of current
+      break
+    case 'lastmonth':
+      comparisonValue = current * (0.85 + Math.random() * 0.3) // 85-115% of current
+      break
+    case 'lastyear':
+      comparisonValue = current * (0.80 + Math.random() * 0.4) // 80-120% of current
+      break
+  }
+
+  // Calculate percentage change
+  const percentChange = ((current - comparisonValue) / comparisonValue) * 100
+  const trend = percentChange > 2 ? 'up' : percentChange < -2 ? 'down' : 'stable'
+
+  // Format change string based on metric type
+  let changeStr
+  if (metricKey === 'powerUsage') {
+    changeStr = `${percentChange > 0 ? '+' : ''}${percentChange.toFixed(1)}%`
+  } else if (metricKey === 'temperature') {
+    const tempChange = current - comparisonValue
+    changeStr = `${tempChange > 0 ? '+' : ''}${tempChange.toFixed(1)}°F`
+  } else if (metricKey === 'airQuality') {
+    const aqiChange = current - comparisonValue
+    changeStr = `${aqiChange > 0 ? '+' : ''}${aqiChange.toFixed(1)} PPM`
+  }
+
+  return {
+    current: Math.round(current * 100) / 100,
+    change: changeStr,
+    trend: trend
+  }
+}
+
 // Helper function to get chart data for a metric and time period
-export const getChartData = (metricKey, timePeriod = '30d') => {
+export const getChartData = (metricKey, timePeriod = '30d', groupBy = 'none') => {
   const metric = SYSTEM_METRICS[metricKey]
   if (!metric) return null
 
@@ -129,20 +216,102 @@ export const getChartData = (metricKey, timePeriod = '30d') => {
 
   const history = metric[historyKey] || metric.history
 
+  // If no grouping, return single dataset
+  if (groupBy === 'none') {
+    return {
+      labels: history.map(point => point.date),
+      datasets: [{
+        label: metric.label,
+        data: history.map(point => point.value),
+        borderColor: getMetricColor(metricKey),
+        backgroundColor: getMetricColor(metricKey, 0.1),
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0,
+        pointHoverRadius: 4
+      }]
+    }
+  }
+
+  // Generate grouped data based on groupBy type
+  const groupedData = generateGroupedData(metricKey, history, groupBy)
+
   return {
     labels: history.map(point => point.date),
-    datasets: [{
-      label: metric.label,
-      data: history.map(point => point.value),
-      borderColor: getMetricColor(metricKey),
-      backgroundColor: getMetricColor(metricKey, 0.1),
+    datasets: groupedData.map((group, index) => ({
+      label: group.name,
+      data: group.data,
+      borderColor: getGroupColor(index),
+      backgroundColor: getGroupColor(index, 0.1),
       borderWidth: 2,
-      fill: true,
+      fill: false,
       tension: 0.4,
       pointRadius: 0,
       pointHoverRadius: 4
-    }]
+    }))
   }
+}
+
+// Helper function to generate grouped data
+const generateGroupedData = (metricKey, baseHistory, groupBy) => {
+  const groups = getGroupOptions(groupBy)
+
+  return groups.map(group => ({
+    name: group.name,
+    data: baseHistory.map(point => {
+      // Generate variations based on group type
+      const baseValue = point.value
+      const variation = group.variation || 1
+      const noise = (Math.random() - 0.5) * baseValue * 0.1
+      return Math.round(baseValue * variation + noise)
+    })
+  }))
+}
+
+// Helper function to get group options
+const getGroupOptions = (groupBy) => {
+  switch (groupBy) {
+    case 'room':
+      return [
+        { name: 'Living Room', variation: 1.2 },
+        { name: 'Kitchen', variation: 0.8 },
+        { name: 'Bedroom', variation: 0.6 },
+        { name: 'Entrance', variation: 0.4 }
+      ]
+    case 'deviceType':
+      return [
+        { name: 'Lights', variation: 0.3 },
+        { name: 'HVAC', variation: 1.5 },
+        { name: 'Appliances', variation: 0.9 },
+        { name: 'Security', variation: 0.2 }
+      ]
+    case 'device':
+      return [
+        { name: 'Thermostat', variation: 1.4 },
+        { name: 'Energy Monitor', variation: 1.0 },
+        { name: 'Smart Plug', variation: 0.7 },
+        { name: 'Vacuum', variation: 0.3 }
+      ]
+    default:
+      return []
+  }
+}
+
+// Helper function to get colors for grouped datasets
+const getGroupColor = (index, alpha = 1) => {
+  const colors = [
+    `rgba(59, 130, 246, ${alpha})`,   // Blue
+    `rgba(245, 158, 11, ${alpha})`,   // Orange
+    `rgba(16, 185, 129, ${alpha})`,   // Green
+    `rgba(239, 68, 68, ${alpha})`,    // Red
+    `rgba(139, 92, 246, ${alpha})`,   // Purple
+    `rgba(236, 72, 153, ${alpha})`,   // Pink
+    `rgba(14, 165, 233, ${alpha})`,   // Light Blue
+    `rgba(34, 197, 94, ${alpha})`     // Light Green
+  ]
+
+  return colors[index % colors.length]
 }
 
 // Helper function to get metric-specific colors
