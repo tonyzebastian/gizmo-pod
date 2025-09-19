@@ -1,23 +1,28 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { SpatialView } from './spatial/SpatialView'
 import { DevicesHeader } from './DevicesHeader'
 
 export const DevicesSection = () => {
-  const [viewMode, setViewMode] = useState('spatial') // 'spatial' or 'grid'
+  const handleAddDevice = () => {
+    console.log('Add Device clicked')
+    // TODO: Implement add device functionality
+  }
+
+  const handleAddZone = () => {
+    console.log('Add Zone clicked')
+    // TODO: Implement add zone functionality
+  }
 
   return (
     <div className="h-screen flex flex-col">
-      <DevicesHeader viewMode={viewMode} setViewMode={setViewMode} />
+      <DevicesHeader
+        onAddDevice={handleAddDevice}
+        onAddZone={handleAddZone}
+      />
 
-      {/* View Content - scroll on small screens, hidden on larger screens */}
+      {/* Spatial View Content */}
       <div className="flex-1 overflow-hidden sm:overflow-auto">
-        {viewMode === 'spatial' ? (
-          <SpatialView />
-        ) : (
-          <div className="h-full overflow-auto p-6">
-            <div className="text-gray-500">Grid View - Coming Soon</div>
-          </div>
-        )}
+        <SpatialView />
       </div>
     </div>
   )

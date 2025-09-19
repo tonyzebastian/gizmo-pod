@@ -44,7 +44,7 @@ export const SmartLightCharts = ({ device }) => {
     return {
       labels: usageData.map(item => {
         const date = new Date(item.timestamp)
-        return date.toLocaleDateString('en-US', { weekday: 'short' })
+        return date.toLocaleDateString('en-US', { weekday: 'short' }).substring(0, 3)
       }),
       datasets: [
         {
@@ -99,53 +99,53 @@ export const SmartLightCharts = ({ device }) => {
 
   return (
     <div className="space-y-6">
-      {/* Usage Pattern & Analytics */}
+      {/* Usage Overview */}
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-slate-900 mb-4">
-          Usage Pattern & Analytics
+          Usage Overview
         </h3>
 
         {/* Circular Progress Indicators */}
         <div className="grid grid-cols-4 gap-3 mb-6">
-          {/* Current Usage */}
+          {/* Current Cost */}
           <div className="flex flex-col items-center">
             <div className="relative w-16 h-16 mb-2 flex items-center justify-center">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-                <span className="text-xs font-bold text-slate-900">
-                  {device.powerData.current}W
+                <span className="text-xs font-bold text-green-600">
+                  ${(device.energyAnalytics.costPerMonth * device.powerData.current / (device.powerData.monthly / 30 / 24)).toFixed(2)}
                 </span>
               </div>
             </div>
             <span className="text-xs text-slate-600 text-center">
-              Current Usage
+              Current Cost
             </span>
           </div>
 
-          {/* Daily Usage */}
+          {/* Estimated Monthly Cost */}
           <div className="flex flex-col items-center">
             <div className="relative w-16 h-16 mb-2 flex items-center justify-center">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-                <span className="text-xs font-bold text-slate-900">
-                  {(device.powerData.daily / 1000).toFixed(1)}
+                <span className="text-xs font-bold text-green-600">
+                  ${device.energyAnalytics.costPerMonth}
                 </span>
               </div>
             </div>
             <span className="text-xs text-slate-600 text-center">
-              Daily Usage
+              Est. Monthly Cost
             </span>
           </div>
 
-          {/* Monthly Usage */}
+          {/* Used Hours */}
           <div className="flex flex-col items-center">
             <div className="relative w-16 h-16 mb-2 flex items-center justify-center">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-slate-900">
-                  {(device.powerData.monthly / 1000).toFixed(1)}
+                  {(device.lifetime.totalHours / 1000).toFixed(1)}k
                 </span>
               </div>
             </div>
             <span className="text-xs text-slate-600 text-center">
-              Monthly Usage
+              Used Hours
             </span>
           </div>
 
@@ -164,41 +164,33 @@ export const SmartLightCharts = ({ device }) => {
             </span>
           </div>
         </div>
+      </div>
 
-        {/* Usage Pattern Chart */}
-        <div className="h-32 mb-6">
-          <Line data={energyChartData} options={energyChartOptions} />
+      {/* Power Usage */}
+      <div className="space-y-4 pt-6">
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">
+          Power Usage
+        </h3>
+
+        {/* Power Stats in inline layout */}
+        <div className="flex justify-between gap-4 mb-4">
+          <div className="flex-1 text-center">
+            <div className="text-xs text-slate-600 mb-1">Current Usage</div>
+            <div className="text-sm font-bold text-slate-900">{device.powerData.current}W</div>
+          </div>
+          <div className="flex-1 text-center">
+            <div className="text-xs text-slate-600 mb-1">Daily Usage</div>
+            <div className="text-sm font-bold text-slate-900">{(device.powerData.daily / 1000).toFixed(1)}kWh</div>
+          </div>
+          <div className="flex-1 text-center">
+            <div className="text-xs text-slate-600 mb-1">Monthly Usage</div>
+            <div className="text-sm font-bold text-slate-900">{(device.powerData.monthly / 1000).toFixed(1)}kWh</div>
+          </div>
         </div>
 
-        {/* Device Stats */}
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-600">Used Hours</span>
-            <span className="font-medium text-slate-900">
-              {device.lifetime.totalHours.toLocaleString()}h
-            </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-600">Rated Hours</span>
-            <span className="font-medium text-slate-900">
-              {device.lifetime.ratedHours.toLocaleString()}h
-            </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-600">Efficiency</span>
-            <div className="flex items-center">
-              <Star size={12} className="text-yellow-500 mr-1" />
-              <span className="font-medium text-slate-900">
-                {device.energyAnalytics.efficiencyRating}
-              </span>
-            </div>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-600">Monthly Cost</span>
-            <span className="font-medium text-green-600">
-              ${device.energyAnalytics.costPerMonth}
-            </span>
-          </div>
+        {/* Power Usage Chart */}
+        <div className="h-32">
+          <Line data={energyChartData} options={energyChartOptions} />
         </div>
       </div>
 

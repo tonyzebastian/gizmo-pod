@@ -77,6 +77,7 @@ export const OverviewSection = () => {
           groupBy={groupBy}
           onTimeRangeChange={setTimeRange}
           onGroupByChange={setGroupBy}
+          comparison={comparison}
         />
       </div>
 

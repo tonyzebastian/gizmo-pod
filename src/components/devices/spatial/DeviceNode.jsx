@@ -28,7 +28,7 @@ export const DeviceNode = ({ device, x, y, isSelected, onSelect, canvasWidth, sh
       case 'smartplug':
         return device.status === 'active' ? '🟢 On' : '⚫ Off'
       case 'vacuum':
-        return device.status === 'active' ? '🟢 Active' : '⚫ Idle'
+        return device.status === 'active' ? '🟢 Active' : '🔴 Offline - Needs debugging'
       case 'energymonitor':
         return `⚡ ${device.coreVital.value}`
       case 'gizmopod':
@@ -161,6 +161,17 @@ export const DeviceNode = ({ device, x, y, isSelected, onSelect, canvasWidth, sh
           stroke="#e5e7eb"
           strokeWidth={2 * scale}
           opacity="0.95"
+        />
+      )}
+
+      {/* Pulsating warning background for vacuum cleaner */}
+      {device.type === 'vacuum' && (
+        <circle
+          r={selectionRadius}
+          fill="#ef4444"
+          stroke="none"
+          opacity="0.15"
+          className="animate-pulse"
         />
       )}
 

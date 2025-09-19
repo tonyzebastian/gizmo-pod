@@ -8,11 +8,14 @@
 - Section switching and sidebar collapse
 - All tests passing
 
-**✅ Phase 2 Complete**: Overview Section
-- Interactive metrics dashboard (Power Usage, Temperature, Air Quality)
-- Chart.js line charts with time period selection (7D/30D/90D)
-- Dynamic mock data generation with realistic patterns
-- Automation flows preview
+**✅ Phase 2 Complete**: Enhanced Overview Dashboard
+- Interactive KPI tiles with optimized design (vertical centering, single border selection, loading states)
+- Dual-axis Chart.js line charts with delta comparison lines (dotted, reduced opacity)
+- Advanced filtering system (time period vs comparison period logic separation)
+- Data panels: Incidents table with severity tags, Device Health with battery inline display
+- Dynamic metric calculations with realistic power usage scaling
+- Smart group-by options (power usage: all options, temp/air quality: room only)
+- Professional table layouts with sticky headers and internal scrolling
 - All tests passing
 
 **✅ Phase 3 Complete**: Multi-Layer SVG Floor Plan & Device Management
@@ -42,9 +45,17 @@
 - Enhanced sidebar with device-type integration and conditional control visibility
 - Complete mock data enhancement for all device types with realistic properties
 
-**🚧 Next Up**: Phase 6 - Grid View & Advanced Device Management
+**✅ Phase 6 Complete**: Overview Dashboard Optimization & Delta Analytics
+- Enhanced KPI tiles with proper vertical centering and refined selection styling
+- Dual-axis trend charts with dotted delta comparison lines showing percentage changes
+- Dynamic right axis visibility (hidden during grouped views, shown for delta comparisons)
+- Improved filter logic: main values respond to time period, deltas respond to comparison period
+- Professional table redesigns with optimized layouts and enhanced device status representations
+- Enhanced legend positioning and styling with proper circular indicators
 
-**Development Server**: Running at http://localhost:3002
+**🚧 Next Up**: Phase 7 - Grid View & Advanced Device Management
+
+**Development Server**: Running at http://localhost:3001
 
 ## 1. Project Structure
 
@@ -366,6 +377,111 @@ export const DEVICE_ICONS = {
   camera: cameraIcon,
   camera_front: camera2Icon,
   smartplug: smartplugIcon
+}
+```
+
+## 6. Delta Analytics & Dual-Axis Charts
+
+### Enhanced Chart.js Implementation with Comparison Analytics
+```javascript
+// src/data/mockMetrics.js - Enhanced getChartData with delta calculations
+export const getChartData = (metricKey, timePeriod = '30d', groupBy = 'none', comparison = 'yesterday') => {
+  const metric = SYSTEM_METRICS[metricKey]
+  const history = metric[getHistoryKey(timePeriod)]
+
+  // Generate comparison data for delta calculation
+  const comparisonData = generateComparisonData(history, comparison)
+
+  // Calculate delta percentages for each data point
+  const deltaData = history.map((point, index) => {
+    const compPoint = comparisonData[index]
+    return ((point.value - compPoint.value) / compPoint.value) * 100
+  })
+
+  // Conditional dual-axis setup
+  if (groupBy === 'none') {
+    return {
+      labels: history.map(point => point.date),
+      datasets: [
+        {
+          label: metric.label,
+          data: history.map(point => point.value),
+          borderColor: getMetricColor(metricKey),
+          backgroundColor: getMetricColor(metricKey, 0.1),
+          yAxisID: 'y', // Left axis
+          fill: true
+        },
+        {
+          label: `Delta (${getComparisonLabel(comparison)})`,
+          data: deltaData,
+          borderColor: getMetricColor(metricKey, 0.6),
+          borderDash: [5, 5], // Dotted line
+          yAxisID: 'y1', // Right axis
+          fill: false
+        }
+      ]
+    }
+  }
+  // Grouped data returns single-axis charts without delta
+}
+```
+
+### Dual-Axis Chart Configuration
+```javascript
+// src/components/overview/MetricChart.jsx - Dynamic axis configuration
+const chartOptions = {
+  scales: {
+    y: {
+      type: 'linear',
+      position: 'left',
+      ticks: { color: '#6B7280' }
+    },
+    // Conditional right axis - only shown when groupBy === 'none'
+    ...(groupBy === 'none' && {
+      y1: {
+        type: 'linear',
+        position: 'right',
+        grid: { drawOnChartArea: false },
+        ticks: {
+          color: '#6B7280',
+          callback: function(value) { return value + '%' }
+        }
+      }
+    })
+  },
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: {
+        usePointStyle: true,
+        pointStyle: 'circle',
+        boxWidth: 8,
+        boxHeight: 8,
+        padding: 30
+      }
+    }
+  }
+}
+```
+
+### Filter Logic Separation
+```javascript
+// Main value calculation - responds to TIME PERIOD only
+const calculateCurrentValue = (metricKey, timePeriod) => {
+  if (metricKey === 'powerUsage') {
+    switch (timePeriod) {
+      case 'today': return 25 + Math.random() * 15 // 25-40 kWh
+      case 'last7days': return 250 + Math.random() * 100 // 250-350 kWh
+      case 'last30days': return 950 + Math.random() * 200 // 950-1150 kWh
+    }
+  }
+  // Temperature and air quality remain averages regardless of time period
+}
+
+// Delta calculation - responds to COMPARISON PERIOD only
+const calculateDelta = (current, comparison) => {
+  const comparisonValue = current * getComparisonMultiplier(comparison)
+  return ((current - comparisonValue) / comparisonValue) * 100
 }
 ```
 

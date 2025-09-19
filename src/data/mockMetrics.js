@@ -206,7 +206,7 @@ const calculateDynamicMetrics = (metricKey, timePeriod, comparison) => {
 }
 
 // Helper function to get chart data for a metric and time period
-export const getChartData = (metricKey, timePeriod = '30d', groupBy = 'none') => {
+export const getChartData = (metricKey, timePeriod = '30d', groupBy = 'none', comparison = 'yesterday') => {
   const metric = SYSTEM_METRICS[metricKey]
   if (!metric) return null
 
@@ -216,11 +216,20 @@ export const getChartData = (metricKey, timePeriod = '30d', groupBy = 'none') =>
 
   const history = metric[historyKey] || metric.history
 
-  // If no grouping, return single dataset
+  // Generate comparison data for delta calculation
+  const comparisonData = generateComparisonData(history, comparison)
+
+  // Calculate delta percentages
+  const deltaData = history.map((point, index) => {
+    const compPoint = comparisonData[index]
+    if (!compPoint || compPoint.value === 0) return 0
+    return ((point.value - compPoint.value) / compPoint.value) * 100
+  })
+
+  // If no grouping, return main dataset with delta
   if (groupBy === 'none') {
-    return {
-      labels: history.map(point => point.date),
-      datasets: [{
+    const datasets = [
+      {
         label: metric.label,
         data: history.map(point => point.value),
         borderColor: getMetricColor(metricKey),
@@ -229,8 +238,27 @@ export const getChartData = (metricKey, timePeriod = '30d', groupBy = 'none') =>
         fill: true,
         tension: 0.4,
         pointRadius: 0,
-        pointHoverRadius: 4
-      }]
+        pointHoverRadius: 4,
+        yAxisID: 'y'
+      },
+      {
+        label: `Delta (${getComparisonLabel(comparison)})`,
+        data: deltaData,
+        borderColor: getMetricColor(metricKey, 0.6),
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        fill: false,
+        tension: 0.4,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        yAxisID: 'y1'
+      }
+    ]
+
+    return {
+      labels: history.map(point => point.date),
+      datasets
     }
   }
 
@@ -248,9 +276,48 @@ export const getChartData = (metricKey, timePeriod = '30d', groupBy = 'none') =>
       fill: false,
       tension: 0.4,
       pointRadius: 0,
-      pointHoverRadius: 4
+      pointHoverRadius: 4,
+      yAxisID: 'y'
     }))
   }
+}
+
+// Helper function to generate comparison data for delta calculation
+const generateComparisonData = (baseHistory, comparison) => {
+  return baseHistory.map(point => {
+    let comparisonMultiplier = 1
+
+    switch (comparison) {
+      case 'yesterday':
+        comparisonMultiplier = 0.95 + Math.random() * 0.1 // 95-105% of current
+        break
+      case 'last7days':
+        comparisonMultiplier = 0.90 + Math.random() * 0.2 // 90-110% of current
+        break
+      case 'lastmonth':
+        comparisonMultiplier = 0.85 + Math.random() * 0.3 // 85-115% of current
+        break
+      case 'lastyear':
+        comparisonMultiplier = 0.80 + Math.random() * 0.4 // 80-120% of current
+        break
+    }
+
+    return {
+      date: point.date,
+      value: point.value * comparisonMultiplier
+    }
+  })
+}
+
+// Helper function to get comparison label
+const getComparisonLabel = (comparison) => {
+  const labels = {
+    yesterday: 'vs Yesterday',
+    last7days: 'vs Last 7 Days',
+    lastmonth: 'vs Last Month',
+    lastyear: 'vs Same Period Last Year'
+  }
+  return labels[comparison] || 'vs Baseline'
 }
 
 // Helper function to generate grouped data

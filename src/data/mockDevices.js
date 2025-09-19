@@ -1,5 +1,5 @@
 // Import device icons
-import gizmopodIcon from '../assets/devices/energy.png'
+import gizmopodIcon from '../assets/devices/gizmo_pod.png'
 import doorlockIcon from '../assets/devices/lock.png'
 import lightIcon from '../assets/devices/light.png'
 import speakerIcon from '../assets/devices/speaker.png'
@@ -555,7 +555,7 @@ export const DEVICES = [
     room: 'Living Room',
     x: 0.51,
     y: 0.75,
-    status: 'active',
+    status: 'offline',
     coreVital: {
       label: 'Status',
       value: 'Cleaning',

@@ -12,7 +12,7 @@ import {
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import { ChevronDown } from 'lucide-react'
-import { getChartData, getMetricDisplayInfo } from '../../data/mockMetrics'
+import { getChartData, getMetricDisplayInfo, SYSTEM_METRICS } from '../../data/mockMetrics'
 import { cn } from '../../utils/cn'
 
 // Register Chart.js components
@@ -102,7 +102,8 @@ export const MetricChart = ({
   timeRange,
   groupBy,
   onTimeRangeChange,
-  onGroupByChange
+  onGroupByChange,
+  comparison = 'yesterday'
 }) => {
   // Reset groupBy if current selection is not available for the new metric
   useEffect(() => {
@@ -135,14 +136,23 @@ export const MetricChart = ({
   }
 
   const displayInfo = getMetricDisplayInfo(activeMetric)
-  const chartData = getChartData(activeMetric, timeRange, groupBy)
+  const chartData = getChartData(activeMetric, timeRange, groupBy, comparison)
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false
+        display: true,
+        position: 'bottom',
+        labels: {
+          usePointStyle: true,
+          padding: 30,
+          color: '#6B7280',
+          pointStyle: 'circle',
+          boxWidth: 8,
+          boxHeight: 8
+        }
       },
       tooltip: {
         mode: 'index',
@@ -151,7 +161,20 @@ export const MetricChart = ({
         titleColor: 'white',
         bodyColor: 'white',
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderWidth: 1
+        borderWidth: 1,
+        callbacks: {
+          label: (context) => {
+            const label = context.dataset.label || ''
+            const value = context.parsed.y
+            if (groupBy === 'none' && context.datasetIndex === 1) {
+              // Delta line - show percentage (only when groupBy is none)
+              return `${label}: ${value.toFixed(1)}%`
+            }
+            // Main line - show value with unit
+            const metric = SYSTEM_METRICS[activeMetric]
+            return `${label}: ${value.toLocaleString()} ${metric?.unit || ''}`
+          }
+        }
       }
     },
     scales: {
@@ -166,14 +189,32 @@ export const MetricChart = ({
         }
       },
       y: {
+        type: 'linear',
         display: true,
+        position: 'left',
         grid: {
           color: 'rgba(107, 114, 128, 0.1)'
         },
         ticks: {
           color: '#6B7280'
         }
-      }
+      },
+      ...(groupBy === 'none' && {
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          grid: {
+            drawOnChartArea: false
+          },
+          ticks: {
+            color: '#6B7280',
+            callback: function(value) {
+              return value + '%'
+            }
+          }
+        }
+      })
     },
     interaction: {
       mode: 'nearest',

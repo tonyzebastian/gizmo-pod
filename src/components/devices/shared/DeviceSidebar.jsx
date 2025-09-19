@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
-import { X, Wifi, Battery, Zap, Activity, Home, ChefHat, Bed } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { X, Wifi, Battery, Zap, Activity, Home, ChefHat, Bed, AlertTriangle } from 'lucide-react'
 import { DEVICE_ICONS } from '../../../data/mockDevices'
+import comingSoonImage from '../../../assets/coming_soon.png'
 import { SmartLightControls } from './SmartLightControls'
 import { SmartLightCharts } from './SmartLightCharts'
 import { ThermostatControls } from './ThermostatControls'
@@ -12,6 +13,13 @@ import { EnergyCharts } from './EnergyCharts'
 
 export const DeviceSidebar = ({ device, onClose }) => {
   const [localDevice, setLocalDevice] = useState(device)
+
+  // Update local device when the device prop changes
+  useEffect(() => {
+    if (device) {
+      setLocalDevice(device)
+    }
+  }, [device])
 
   if (!device) return null
 
@@ -174,7 +182,7 @@ export const DeviceSidebar = ({ device, onClose }) => {
       </div>
 
       {/* Content */}
-      <div className="p-6 space-y-8">
+      <div className="p-6 space-y-12">
         {/* Device-Specific Controls - First Section */}
         {localDevice.type === 'light' && localDevice.lightControls && (
           <SmartLightControls
@@ -205,7 +213,7 @@ export const DeviceSidebar = ({ device, onClose }) => {
         )}
 
         {/* Battery Info (if applicable) */}
-        {device.battery && (
+        {device.battery && !['vacuum', 'speaker', 'doorlock'].includes(localDevice.type) && (
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-slate-900 mb-3">Battery</h3>
             <div className="space-y-3">
@@ -260,8 +268,61 @@ export const DeviceSidebar = ({ device, onClose }) => {
           <EnergyCharts device={localDevice} />
         )}
 
+        {/* Vacuum Offline Status */}
+        {localDevice.type === 'vacuum' && (
+          <div className="space-y-6">
+            {/* Status Alert */}
+            <div className="bg-slate-100 border border-slate-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <AlertTriangle size={20} className="text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-red-900 mb-1">Device Offline</h3>
+                  <p className="text-sm text-slate-600 mb-3">
+                    The vacuum cleaner is currently offline and needs debugging. Last seen cleaning the living room before going offline.
+                  </p>
+                  <button className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Fix it with Pet Robot
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Device Information</h4>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex justify-between">
+                  <span>Last Activity:</span>
+                  <span>2 hours ago</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Battery Level:</span>
+                  <span className="text-red-600">5% (Critical)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Issue Type:</span>
+                  <span>Connection Lost</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Coming Soon for other device types */}
+        {['smartplug', 'gizmopod', 'speaker', 'doorlock'].includes(localDevice.type) && (
+          <div className="flex items-center justify-center py-12">
+            <img
+              src={comingSoonImage}
+              alt="Coming Soon"
+              className="max-w-xs w-full"
+            />
+          </div>
+        )}
+
         {/* General Device Controls */}
-        {!['light', 'thermostat', 'camera', 'camera_front', 'energymonitor'].includes(localDevice.type) && (
+        {!['light', 'thermostat', 'camera', 'camera_front', 'energymonitor', 'smartplug', 'gizmopod', 'vacuum', 'speaker', 'doorlock'].includes(localDevice.type) && (
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-slate-900 mb-3">Controls</h3>
             <div className="space-y-2">
