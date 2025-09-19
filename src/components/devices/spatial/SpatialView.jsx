@@ -1,55 +1,50 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { FloorPlan } from './FloorPlan'
+import { DeviceSidebar } from '../shared/DeviceSidebar'
+import { useDeviceSelection } from '../../../hooks/useDeviceSelection'
 
 export const SpatialView = () => {
-  const [selectedDevice, setSelectedDevice] = useState(null)
+  const { selectedDevice, selectDevice, clearSelection, toggleDevice } = useDeviceSelection()
 
   const handleDeviceSelect = (device) => {
-    setSelectedDevice(device)
+    toggleDevice(device)
   }
 
   const handleClearSelection = () => {
-    setSelectedDevice(null)
+    clearSelection()
   }
 
   return (
-    <div
-      className="relative w-full h-full overflow-auto"
-      style={{
-        backgroundImage: 'url(/src/assets/background.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'local'
-      }}
-    >
+    <div className="relative w-full h-full flex">
+      {/* Main Floor Plan Area */}
+      <div
+        className={`relative transition-all duration-300 overflow-auto ${
+          selectedDevice ? 'w-3/5 md:w-2/3 lg:w-3/5' : 'w-full'
+        }`}
+        style={{
+          backgroundImage: 'url(/src/assets/background.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'local'
+        }}
+      >
+        {/* Floor Plan Layer */}
+        <div className="relative z-10">
+          <FloorPlan
+            onDeviceSelect={handleDeviceSelect}
+          />
+        </div>
 
-      {/* Floor Plan Layer */}
-      <div className="relative z-10">
-        <FloorPlan
-          selectedDevice={selectedDevice}
-          onDeviceSelect={handleDeviceSelect}
-        />
       </div>
 
-      {/* Clear selection overlay when device is selected */}
+      {/* Device Sidebar */}
       {selectedDevice && (
-        <div
-          className="absolute inset-0 bg-black bg-opacity-20 cursor-pointer z-20"
-          onClick={handleClearSelection}
-          style={{ pointerEvents: 'auto' }}
+        <DeviceSidebar
+          device={selectedDevice}
+          onClose={handleClearSelection}
         />
       )}
-
-      {/* Floor plan takes up remaining space or 60% when device selected */}
-      <div
-        className={`relative transition-all duration-300 ${
-          selectedDevice ? 'w-3/5' : 'w-full'
-        }`}
-        style={{ pointerEvents: 'none' }}
-      >
-        {/* This div maintains the layout but FloorPlan renders absolutely */}
-      </div>
     </div>
   )
 }

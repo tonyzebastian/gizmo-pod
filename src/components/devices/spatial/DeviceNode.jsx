@@ -1,143 +1,184 @@
 import React, { useState } from 'react'
-import {
-  Home,
-  Lightbulb,
-  Volume2,
-  Thermometer,
-  Camera,
-  Wind
-} from 'lucide-react'
-import { DEVICE_ICONS, DEVICE_COLORS, DEVICE_ICON_COLORS } from '../../../data/mockDevices'
+import { DEVICE_ICONS } from '../../../data/mockDevices'
 
-export const DeviceNode = ({ device, x, y, isSelected, onSelect, canvasWidth }) => {
+export const DeviceNode = ({ device, x, y, isSelected, onSelect, canvasWidth, showTooltipOnly = false }) => {
   const [showTooltip, setShowTooltip] = useState(false)
 
   // Check if battery should override core vital
   const shouldShowBattery = device.battery && device.battery.level < 20
-  const displayVital = shouldShowBattery
-    ? `Battery ${device.battery.level}%`
-    : device.coreVital.value
 
-  const deviceColor = DEVICE_COLORS[device.type] || '#ffffff'
-  const iconColor = DEVICE_ICON_COLORS[device.type] || '#6b7280'
-  const statusColor = device.status === 'active' ? '#10b981' : '#6b7280'
+  // Get better vital representation
+  const getVitalRepresentation = (device) => {
+    if (shouldShowBattery) {
+      return `🔋 ${device.battery.level}%`
+    }
+
+    switch (device.type) {
+      case 'light':
+        return device.status === 'active' ? '🟢 On' : '⚫ Off'
+      case 'speaker':
+        return device.status === 'active' ? '🟢 Playing' : '⚫ Off'
+      case 'thermostat':
+        return `🌡️ ${device.coreVital.value}`
+      case 'camera':
+      case 'camera_front':
+        return device.status === 'active' ? '🟢 Recording' : '⚫ Off'
+      case 'doorlock':
+        return device.coreVital.value === 'Locked' ? '🔒 Locked' : '🔓 Unlocked'
+      case 'smartplug':
+        return device.status === 'active' ? '🟢 On' : '⚫ Off'
+      case 'vacuum':
+        return device.status === 'active' ? '🟢 Active' : '⚫ Idle'
+      case 'energymonitor':
+        return `⚡ ${device.coreVital.value}`
+      case 'gizmopod':
+        return `🟢 ${device.coreVital.value}`
+      default:
+        return device.status === 'active' ? '🟢 Active' : '⚫ Inactive'
+    }
+  }
+
+  const displayVital = getVitalRepresentation(device)
+
 
   // Responsive sizing based on canvas width
   const isMobile = canvasWidth < 768
   const scale = isMobile ? 0.8 : 1
 
   const selectionRadius = 35 * scale
-  const statusRadius = 28 * scale
-  const deviceRadius = 25 * scale
-  const iconSize = 18 * scale
+  const iconSize = 50 * scale  // Increased from 18 to 40
 
-  // Icon component mapping
-  const iconComponents = {
-    Home,
-    Lightbulb,
-    Volume2,
-    Thermometer,
-    Camera,
-    Wind
+  // Get the icon path for this device type
+  const iconPath = DEVICE_ICONS[device.type] || DEVICE_ICONS.gizmopod
+
+  // If this is tooltip-only render, only show tooltip when hovered
+  if (showTooltipOnly) {
+    return (
+      <>
+        {/* Invisible hover area */}
+        <g
+          transform={`translate(${x}, ${y})`}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          style={{ cursor: 'pointer' }}
+          onClick={onSelect}
+        >
+          <circle
+            r={selectionRadius}
+            fill="transparent"
+            data-testid={`hover-area-${device.id}`}
+          />
+        </g>
+
+        {/* Tooltip */}
+        {showTooltip && (
+          <g transform={`translate(${x + 30}, ${y - 20})`}>
+            {/* Drop shadow */}
+            <rect
+              x="2"
+              y="2"
+              width="160"
+              height={shouldShowBattery ? "75" : (device.type === 'thermostat' ? "65" : "55")}
+              rx="8"
+              fill="black"
+              opacity="0.1"
+            />
+            {/* Main tooltip background */}
+            <rect
+              x="0"
+              y="0"
+              width="160"
+              height={shouldShowBattery ? "75" : (device.type === 'thermostat' ? "65" : "55")}
+              rx="8"
+              fill="white"
+              stroke="#e5e7eb"
+              strokeWidth="1"
+            />
+            {/* Device name */}
+            <text
+              x="12"
+              y="18"
+              fontSize="12"
+              fill="#1f2937"
+              fontWeight="600"
+            >
+              {device.name}
+            </text>
+            {/* Device vital with improved representation */}
+            <text
+              x="12"
+              y="35"
+              fontSize="10"
+              fill="#6b7280"
+            >
+              {displayVital}
+            </text>
+            {/* Additional info for some devices */}
+            {device.type === 'thermostat' && !shouldShowBattery && (
+              <text
+                x="12"
+                y="50"
+                fontSize="9"
+                fill="#9ca3af"
+              >
+                Target: {device.coreVital.value.split(' → ')[1] || device.coreVital.value}
+              </text>
+            )}
+            {/* Battery warning if needed */}
+            {shouldShowBattery && (
+              <text
+                x="12"
+                y="52"
+                fontSize="10"
+                fill="#ef4444"
+                fontWeight="500"
+              >
+                Low Battery!
+              </text>
+            )}
+          </g>
+        )}
+      </>
+    )
   }
 
-  const IconComponent = iconComponents[DEVICE_ICONS[device.type]] || Home
-
+  // Regular device icon render
   return (
-    <>
-      <g
-        data-testid={`device-node-${device.id}`}
-        transform={`translate(${x}, ${y})`}
-        onClick={onSelect}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        style={{ cursor: 'pointer' }}
-      >
-        {/* Selection ring */}
-        {isSelected && (
-          <circle
-            data-testid="selection-ring"
-            r={selectionRadius}
-            fill="none"
-            stroke="#3b82f6"
-            strokeWidth={3 * scale}
-          />
-        )}
-
-        {/* Status ring */}
+    <g
+      data-testid={`device-node-${device.id}`}
+      transform={`translate(${x}, ${y})`}
+      onClick={onSelect}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+      style={{ cursor: 'pointer' }}
+    >
+      {/* Selection background */}
+      {isSelected && (
         <circle
-          data-testid="status-ring"
-          r={statusRadius}
-          fill="none"
-          stroke={statusColor}
-          strokeWidth={3 * scale}
-        />
-
-        {/* Device background - white */}
-        <circle
-          data-testid="device-background"
-          r={deviceRadius}
-          fill={deviceColor}
+          data-testid="selection-background"
+          r={selectionRadius}
+          fill="white"
           stroke="#e5e7eb"
-          strokeWidth="1"
+          strokeWidth={2 * scale}
+          opacity="0.95"
         />
-
-        {/* Device icon using Lucide React */}
-        <foreignObject
-          x={-iconSize/2}
-          y={-iconSize/2}
-          width={iconSize}
-          height={iconSize}
-        >
-          <IconComponent
-            size={iconSize}
-            color={iconColor}
-            data-testid="device-icon"
-          />
-        </foreignObject>
-      </g>
-
-      {/* Tooltip */}
-      {showTooltip && (
-        <g transform={`translate(${x + 40}, ${y - 30})`}>
-          <rect
-            x="0"
-            y="0"
-            width="120"
-            height="60"
-            rx="4"
-            fill="black"
-            opacity="0.8"
-          />
-          <text
-            x="8"
-            y="16"
-            fontSize="12"
-            fill="white"
-            fontWeight="bold"
-          >
-            {device.name}
-          </text>
-          <text
-            x="8"
-            y="32"
-            fontSize="10"
-            fill="white"
-          >
-            {device.coreVital.label}: {device.coreVital.value}
-          </text>
-          {shouldShowBattery && (
-            <text
-              x="8"
-              y="48"
-              fontSize="10"
-              fill="#ef4444"
-            >
-              Battery: {device.battery.level}%
-            </text>
-          )}
-        </g>
       )}
-    </>
+
+      {/* Device icon using custom PNG */}
+      <image
+        x={showTooltip ? -(iconSize * 1.1)/2 : -iconSize/2}
+        y={showTooltip ? -(iconSize * 1.1)/2 : -iconSize/2}
+        width={showTooltip ? iconSize * 1.1 : iconSize}
+        height={showTooltip ? iconSize * 1.1 : iconSize}
+        href={iconPath}
+        data-testid="device-icon"
+        style={{
+          filter: showTooltip
+            ? 'drop-shadow(1px 0 0 #3b82f6) drop-shadow(-1px 0 0 #3b82f6) drop-shadow(0 1px 0 #3b82f6) drop-shadow(0 -1px 0 #3b82f6)'
+            : 'drop-shadow(1px 0 0 #1a1a1a) drop-shadow(-1px 0 0 #1a1a1a) drop-shadow(0 1px 0 #1a1a1a) drop-shadow(0 -1px 0 #1a1a1a)',
+          transition: 'width 0.2s ease-in-out, height 0.2s ease-in-out, filter 0.2s ease-in-out'
+        }}
+      />
+    </g>
   )
 }

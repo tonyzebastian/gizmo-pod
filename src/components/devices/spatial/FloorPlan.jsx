@@ -3,8 +3,10 @@ import { useCoordinates } from '../../../hooks/useCoordinates'
 import { DeviceNode } from './DeviceNode'
 import { DEVICES } from '../../../data/mockDevices'
 import { ROOMS } from '../../../data/mockRooms'
+import { useDeviceSelection } from '../../../hooks/useDeviceSelection'
 
-export const FloorPlan = ({ selectedDevice, onDeviceSelect }) => {
+export const FloorPlan = ({ onDeviceSelect }) => {
+  const { selectedDevice } = useDeviceSelection()
   // Calculate available viewport dimensions excluding header height
   const availableHeight = window.innerHeight - 80 // Account for fixed header
   const canvasWidth = selectedDevice
@@ -64,7 +66,7 @@ export const FloorPlan = ({ selectedDevice, onDeviceSelect }) => {
         ))}
       </g>
 
-      {/* Layer 3: Devices */}
+      {/* Layer 3: Device Icons */}
       <g data-testid="devices-group">
         {DEVICES.map(device => {
           const coords = deviceToCanvasCoords(device)
@@ -77,6 +79,26 @@ export const FloorPlan = ({ selectedDevice, onDeviceSelect }) => {
               isSelected={selectedDevice?.id === device.id}
               onSelect={() => onDeviceSelect(device)}
               canvasWidth={canvasWidth}
+              showTooltipOnly={false}
+            />
+          )
+        })}
+      </g>
+
+      {/* Layer 4: Tooltips (always on top) */}
+      <g data-testid="tooltips-group">
+        {DEVICES.map(device => {
+          const coords = deviceToCanvasCoords(device)
+          return (
+            <DeviceNode
+              key={`tooltip-${device.id}`}
+              device={device}
+              x={coords.x}
+              y={coords.y}
+              isSelected={selectedDevice?.id === device.id}
+              onSelect={() => onDeviceSelect(device)}
+              canvasWidth={canvasWidth}
+              showTooltipOnly={true}
             />
           )
         })}

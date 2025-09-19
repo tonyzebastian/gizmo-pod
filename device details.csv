@@ -1,0 +1,24 @@
+Device,Attribute,Visualization,Web UI
+Door Lock,Locked/Unlocked state,Toggle button + status indicator (color coded),Interactive toggle with audit log panel for events
+Door Lock,History & Usage,"Bar chart (unlocks per day), heatmap (time-of-day patterns)",Interactive charts + filter by user
+Door Lock,Access Control,List view of users with add/remove controls,Role management table + audit log
+Smart Lights,On/Off + Brightness/Color,"Switch toggle, slider for brightness, color wheel",Control panel with live preview + room grouping
+Smart Lights,Energy & Lifetime,"Line chart (energy use), progress bar (lifespan)",Device detail panel with charts
+Smart Speakers,Playback & Device State,"Play/pause button, album art, source badge",Media control card with metadata
+Smart Speakers,Logs & Diagnostics,"Timeline of voice commands, signal strength graph",Collapsible log viewer + network diagnostics tab
+Thermostat,Temp & History,"Circular gauge (current vs target), line chart (history)",Dashboard widget + historical analytics view
+Thermostat,HVAC Runtime,Stacked bar chart (cooling/heating/idle),Energy panel with breakdown
+Energy Monitor,Real-Time Consumption,"Gauge (W/kWh), sparkline",Central dashboard widget
+Energy Monitor,Appliance Breakdown,Pie chart or stacked bar,Appliance-level breakdown tab
+Smart Vacuum,Status & Map,Animated robot icon + 2D coverage map,Map overlay with real-time cleaning path
+Smart Vacuum,Usage & Health,"Line chart (minutes/day), progress bars (filter/brush wear)",Maintenance dashboard + logs
+Smart Plugs,On/Off + Usage,"Toggle, sparkline for power draw",Device card with real-time graph
+Smart Plugs,History & Anomalies,Line chart + anomaly alerts,Analytics tab with notifications
+Smart Cameras,Live & Recordings,Video player + timeline scrubber,Surveillance dashboard view
+Smart Cameras,Motion & Object Detection,"Interactive motion zone editor, logs table, thumbnails",Configurable alerts + detection history
+Pet Robot,Vitals & Control,"Battery gauge, map location marker, first-person feed",Immersive control panel with AR map integration
+Pet Robot,Logs & Developer Mode,"Task history log, code editor",Advanced dev console for scripting robot routines
+Fridge,Temp & Door State,"Dual gauges (fridge + freezer), timeline of door opens",Appliance detail panel with history graphs
+Fridge,Compressor & Anomalies,"Line chart (runtime), alerts on spikes",Diagnostics tab with anomaly detection
+Washing Machine,Cycle & Program,"Progress bar, program icon, countdown timer",Appliance control card with live state
+Washing Machine,History & Errors,"Bar chart (cycles/week), error log table",Maintenance & history tab

@@ -2,14 +2,17 @@ import React from 'react'
 import { useAppNavigation } from '../../hooks/useAppNavigation'
 import { OverviewSection } from '../overview/OverviewSection'
 import { DevicesSection } from '../devices/DevicesSection'
+import { FlowsSection } from '../flows/FlowsSection'
+import { ConfigSection } from '../config/ConfigSection'
+import { ProfileSection } from '../profile/ProfileSection'
 
 const sectionComponents = {
   overview: () => <OverviewSection />,
   devices: () => <DevicesSection />,
-  flows: () => <div>Flows Section</div>,
-  config: () => <div>Config Section</div>,
-  notifications: () => <div>Notifications Section</div>,
-  profile: () => <div>Profile Section</div>
+  flows: () => <FlowsSection />,
+  config: () => <ConfigSection />,
+  notifications: () => <div>Notifications handled by sidebar popover</div>,
+  profile: () => <ProfileSection />
 }
 
 export const ContentArea = () => {
