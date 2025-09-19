@@ -4,6 +4,7 @@ import { DeviceNode } from './DeviceNode'
 import { DEVICES } from '../../../data/mockDevices'
 import { ROOMS } from '../../../data/mockRooms'
 import { useDeviceSelection } from '../../../hooks/useDeviceSelection'
+import floorPlanImage from '../../../assets/floor_plan.png'
 
 export const FloorPlan = ({ onDeviceSelect }) => {
   const { selectedDevice } = useDeviceSelection()
@@ -40,7 +41,7 @@ export const FloorPlan = ({ onDeviceSelect }) => {
       {/* Layer 1: Floor Plan (responsive size) */}
       <image
         data-testid="floor-plan-image"
-        href="/src/assets/floor_plan.png"
+        href={floorPlanImage}
         x={floorPlanX}
         y={floorPlanY}
         width={floorPlanWidth}

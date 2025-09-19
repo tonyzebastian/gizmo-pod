@@ -13,6 +13,8 @@ import {
 } from 'lucide-react'
 import { useAppNavigation } from '../../hooks/useAppNavigation'
 import { cn } from '../../utils/cn'
+import logoImage from '../../assets/logo.png'
+import avatarImage from '../../assets/avatar.png'
 
 const mainNavigationItems = [
   { id: 'overview', label: 'Overview', icon: Home },
@@ -28,7 +30,7 @@ const bottomNavigationItems = [
 const userProfile = {
   name: 'Tony Sebastian',
   email: 'tony@gizmopod.com',
-  avatar: '/src/assets/avatar.png'
+  avatar: avatarImage
 }
 
 const profileMenuItems = [
@@ -87,7 +89,7 @@ export const Sidebar = () => {
       <div className="p-4 border-b border-slate-200 flex items-center justify-between h-16">
         {!isSidebarCollapsed ? (
           <div className="flex items-center">
-            <img src="/src/assets/logo.png" alt="GizmoPod" className="w-5 h-5 object-contain" />
+            <img src={logoImage} alt="GizmoPod" className="w-5 h-5 object-contain" />
             <h1 className="ml-2 text-lg font-bold text-slate-900">GizmoPod</h1>
           </div>
         ) : (
@@ -101,7 +103,7 @@ export const Sidebar = () => {
             {isHoveringCollapsed ? (
               <PanelLeftOpen size={20} className="text-slate-500 hover:text-slate-700" />
             ) : (
-              <img src="/src/assets/logo.png" alt="GizmoPod" className="w-5 h-5 object-contain" />
+              <img src={logoImage} alt="GizmoPod" className="w-5 h-5 object-contain" />
             )}
           </button>
         )}

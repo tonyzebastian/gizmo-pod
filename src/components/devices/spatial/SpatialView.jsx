@@ -2,6 +2,7 @@ import React from 'react'
 import { FloorPlan } from './FloorPlan'
 import { DeviceSidebar } from '../shared/DeviceSidebar'
 import { useDeviceSelection } from '../../../hooks/useDeviceSelection'
+import backgroundImage from '../../../assets/background.png'
 
 export const SpatialView = () => {
   const { selectedDevice, selectDevice, clearSelection, toggleDevice } = useDeviceSelection()
@@ -22,7 +23,7 @@ export const SpatialView = () => {
           selectedDevice ? 'w-3/5 md:w-2/3 lg:w-3/5' : 'w-full'
         }`}
         style={{
-          backgroundImage: 'url(/src/assets/background.png)',
+          backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
